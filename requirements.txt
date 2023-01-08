@@ -7,3 +7,7 @@ uvicorn[standard]==0.20.0
 argparse==1.1
 scikit-learn==1.1.2
 starlette-exporter==0.10.0
+black==22.3.0
+pytest==6.2.4
+pytest-cov==2.12.1
+httpx==0.23.3
