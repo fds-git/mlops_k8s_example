@@ -27,4 +27,5 @@ jobs:
           black --check --verbose src
       - name: Unit Integration tests with pytest
         run: |
-          pytest --cov=src
+          cd src
+          pytest
