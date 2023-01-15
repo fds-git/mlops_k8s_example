@@ -11,7 +11,7 @@ from sklearn.pipeline import Pipeline
 
 app = FastAPI()
 
-MODEL = os.getenv("MODEL", default="../models/serialized_model.sav")
+MODEL = os.getenv("MODEL", default="./models/serialized_model.sav")
 
 
 def load(path: str):

@@ -67,7 +67,7 @@ def main():
     cat_transformer_dist = {
         "preprocessor__cat__imputer__strategy": ["most_frequent", "constant"],
         "preprocessor__cat__imputer__add_indicator": [True, False],
-        "preprocessor__cat__pca__n_components": list(range(2, 15)),
+        "preprocessor__cat__pca__n_components": list(range(2, 8)),
     }
 
     random_forest_dist = {
