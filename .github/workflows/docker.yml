@@ -20,7 +20,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Train model
-        run: src/train.py -d data -m models
+        run: python3 src/train.py -d data -m models
       - name: Upload model artifact
         uses: actions/upload-artifact@v2
         with:
