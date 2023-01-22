@@ -1,54 +1,103 @@
-# Проект по развертыванию сервиса с моделью машинного обучения в K8S
+## Домашнее задание по развертыванию сервиса с моделью машинного обучения в K8S
 
-Для запуска сервера (на компе или в контейнере вручную):
-uvicorn src.server:app --host 0.0.0.0 --port 80 --reload
-где
-src.server - server.py
-app - FasAPI application name in server.py
-в боевом режиме надо задавать значение ключа --workers
+### Задачи:
+- Напишите на python REST API для вашей модели.
+- Настройте на github actions CI/CD с тестами, сборкой docker и его публикацией в registry.
+- Создайте k8s манифест для запуска вашего сервиса.
+- Создайте в YC k8s кластер из 3-х узлов.
+- Запустите ваш сервис в k8s и проведите тестирование через публичный API.
+  
+### Локальное тестирование приложения
 
-1) Локально запустить обучение (полученная модель в дальнейшем будет зашита в образ)
-python3 src/train.py -d data -m models
+1) Создаем рабочую директорию и клонируем репозиторий
 
-2) Собираем образ обучениия модели (для тестирования окружения)
-docker build -t model_fit -f docker/fit/Dockerfile .
+    cd ~
+    mkdir work && cd work && mkdir MLOps_plus && cd MLOps_plus && git clone https://github.com/fds-git/mlops_k8s_homework
 
-3) Собираем образ инференса модели 
-docker build -t fastapi_inference -f docker/deploy/Dockerfile .
+2) Запускаем сервер
 
-4) Запускаем контейнер обучения для тестирования
-docker run --name model_fit -d -it --rm model_fit
-docker exec -it model_fit bash
-python3 src/train.py -d data -m models
+    uvicorn src.server:app --host 0.0.0.0 --port 8080 --reload
+    где
+    src.server - server.py
+    app - FasAPI application name in server.py
+    в боевом режиме можно задавать значение ключа --workers, но не рекомендуется так делать при развертывании через контейнеры (надо масштабировать контейнеры, один контейнер - один сервис)
 
-5) Запускаем контейнер инференса для тестирования
-docker run --name fastapi_inference -d -it --rm -p 80:80 fastapi_inference
+3) Тестируем работу через клинента
+
+    cd ~/work/MLOps_plus/mlops_k8s_homework
+    python3 src/client.py -host 127.0.0.1 -port 8080
+
+4) Проверяем работу pytest
+
+    pytest
+
+5) Проверяем скрипт обучения модели (после обучения новой модели pytest может быть не пройден, если новая модель будет отличаться от заложенной в проекте)
+
+    python3 src/train.py -d data -m models
+
+### Тестирование обучения в контейнере (для тестирования окружения)
+
+1) Собираем образ обучениия модели
+
+    docker build -t model_fit -f docker/fit/Dockerfile .
+
+2) Запускаем контейнер и обучение
+
+    docker run --name model_fit -it --rm model_fit
+    python3 src/train.py -d data -m models
+
+3) Проверяем результат
+
+    ls -la models/
+
+### Тестирование приложения в контейнере (все элементы будут протестированы в том же окружении, в котором будет запущен CI/CD)
+
+1) Собираем образ инференса модели
+
+    docker build -t fastapi_inference -f docker/deploy/Dockerfile .
+    
+2) Запускаем контейнер инференса для тестирования
+
+    docker run --name fastapi_inference -it -d --rm -p 80:80 fastapi_inference
 
 или в режиме разработки
 
-docker run --name fastapi_inference -d -it --rm -p 80:80 -v ~/work/MLOps/kubernetes_example/:/workdir/ fastapi_inference
+    docker run --name fastapi_inference -it --rm -p 80:80 -v ~/work/MLOps_plus/mlops_k8s_homework/:/workdir/ fastapi_inference
 
-6) Зайти в контейнер можно командой
+3) Зайти в контейнер командой
 
-docker exec -it fastapi_inference bash
+    docker exec -it fastapi_inference bash
 
-7) Протестировать работу клиента в связке с сервером (на локальном компе и в контейнере вручную, необходим запуск сервера)
+4) Запустить автотесты из контейнера
 
-python3 src/client.py -host 127.0.0.1 -port 80
+    pytest
 
-8) Запустить автотесты как в директоририи проекта на локальном компе, так и в контейнере (WORKDIR). Результат должен быть одинаковый.
+5) Запустить клиента из контейнера
 
-pytest
+    python3 src/client.py -host 127.0.0.1 -port 80
 
-9) В контейнере запустить переобучение командой
+6) Запустить клиента на локальном компе
 
-python3 src/train.py -d data -m models
+    python3 src/client.py -host 127.0.0.1 -port 80
 
-10)  Для отправки образа в Docker Hub:
-- docker login -u dmitry030309
-- ввести пароль или токен
-- создать репозиторий на Docker Hub
-- docker tag fastapi_inference:latest dmitry030309/fastapi_inference:latest
-- docker push dmitry030309/fastapi_inference:latest
+### Отправка образа в Docker Hub
 
-11) Для автоматизированного CD не забыть добавить секреты в GitHub для доступа к DockerHub
+1) Залогиниться (ввести пароль или токен)
+
+    docker login -u dmitry030309
+
+2) Создать репозиторий на Docker Hub (fastapi_inference)
+
+3) Сделать ссылку на необходимый образ с изменением его названия
+
+    docker tag fastapi_inference:latest dmitry030309/fastapi_inference:latest
+
+4) Отправить образ в репозиторий
+
+5) Для автоматизированного CD не забыть добавить секреты в GitHub для доступа к DockerHub
+
+### Проверка CI/CD
+
+1) Делаем коммит в репозиторий
+
+    
