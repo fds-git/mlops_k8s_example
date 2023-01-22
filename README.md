@@ -26,7 +26,7 @@ docker run --name fastapi_inference -d -it --rm -p 80:80 fastapi_inference
 
 или в режиме разработки
 
-docker run --name fastapi_inference -d -it --rm -p 80:80 -v /home/dima/work/MLOps/kubernetes_example/:/workdir/ fastapi_inference
+docker run --name fastapi_inference -d -it --rm -p 80:80 -v ~/work/MLOps/kubernetes_example/:/workdir/ fastapi_inference
 
 6) Зайти в контейнер можно командой
 
@@ -50,3 +50,5 @@ python3 src/train.py -d data -m models
 - создать репозиторий на Docker Hub
 - docker tag fastapi_inference:latest dmitry030309/fastapi_inference:latest
 - docker push dmitry030309/fastapi_inference:latest
+
+11) Для автоматизированного CD не забыть добавить секреты в GitHub для доступа к DockerHub
