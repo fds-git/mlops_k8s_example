@@ -66,7 +66,7 @@ def main():
     }
 
     response = requests.post(url + "/predict_batch", json=passengers, timeout=30)
-    #response = requests.post(url, json=passengers, timeout=30)
+    # response = requests.post(url, json=passengers, timeout=30)
     print("status code: ", response.status_code)
     print("content: ", response.content)
 
